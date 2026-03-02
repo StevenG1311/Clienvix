@@ -1,5 +1,8 @@
 # Python-generated files
+.idea/
+.venv/
 __pycache__/
+*.pyc
 *.py[oc]
 build/
 dist/

@@ -1,28 +1,14 @@
-import json
 import requests
 import pandas as pd
-from pathlib import Path
 from datetime import datetime
 from getpass import getpass
+from .c_json import *
 from requests.exceptions import Timeout, RequestException
-
-# CARGAR CONFIGURACIÓN SEGURA
-BASE_DIR = Path(__file__).resolve().parents[1]
-CONFIG_PATH = BASE_DIR / "config.json"
-
-def cargar_config():
-    if not CONFIG_PATH.exists():
-        raise FileNotFoundError(
-            f"No se encontró el archivo de configuración: {CONFIG_PATH}"
-        )
-
-    return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
 
 # CLIENTE NAVIXY
 class ConectNvx:
-
     def __init__(self):
-        self.config = cargar_config()
+        self.config = j_config()
 
         self.user = input("User: ")
         self.password = getpass("Password: ")

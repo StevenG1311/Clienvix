@@ -1,22 +1,11 @@
-import json
 import smtplib
-from pathlib import Path
+from .c_json import *
 from email.message import EmailMessage
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = PROJECT_ROOT / "config.json"
-
-try:
-    with open(CONFIG_PATH, "r", encoding='utf-8') as json_file:
-        info = json.load(json_file)
-
-except FileNotFoundError:
-    print("Error: Archivo de configuración no encontrado.")
-    exit()
 
 class Mensajes:
     def __init__(self):
         # Configuración desde JSON
+        info = j_config()
         self.nombre_json = info["MAIL"]["NOMBRE"]
         self.mail_json = info["MAIL"]["CORREO"]
         self.clave_json = info["MAIL"]["CLAVE"]
