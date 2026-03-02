@@ -17,13 +17,20 @@ jobs:
       with:
         python-version: '3.12'
 
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        venv\Scripts\activate
+
     - name: Install dependencies
       run: |
-        pip install pyinstaller
+        venv\Scripts\python -m pip install --upgrade pip
+        venv\Scripts\pip install -r requirements.txt
+        venv\Scripts\pip install pyinstaller
 
     - name: Build EXE
       run: |
-        pyinstaller --onefile --noconsole --name Clienvix main.py
+        venv\Scripts\pyinstaller --onefile --noconsole --clean --hidden-import=openpyxl --name Clienvix main.py
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
