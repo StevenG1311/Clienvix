@@ -1,6 +1,7 @@
-from .edit import *
-import os
-import sys
+from .core_filter import *
+
+m = MailConfig()
+c = ApiFilter()
 
 def limpiar_pantalla():
     os.system("cls" if os.name == "nt" else "clear")
@@ -8,19 +9,44 @@ def limpiar_pantalla():
 def pausar():
     input("\nPresione ENTER para continuar...")
 
+def menu_ajustes():
+    ajustes = {
+        "1": ("Configurar Correo", m.configurar_mail),
+        "2": ("Ver Configuración", m.ver_configuracion),
+        "3": ("Eliminar Configuración", m.del_config),
+        "4":("Cambiar ruta de guardado local", c.new_ruta),
+        "0": ("Regresar", None)
+    }
+
+    while True:
+        limpiar_pantalla()
+        print("=== AJUSTES ===")
+
+        for key, (desc, _) in ajustes.items():
+            print(f"[{key}] {desc}")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "0":
+            break
+
+        accion = ajustes.get(opcion)
+
+        if accion and accion[1]:
+            limpiar_pantalla()
+            accion[1]()
+        else:
+            print("Opción inválida")
+
+        pausar()
+
 # MENÚ PRINCIPAL
 def Menu():
-    if mail_config_incompleta():
-        print("Correo no configurado.")
-        configurar_mail()
-
     menu = {
-        "1": ("Estado de Cuenta", status_account),
-        "2": ("Estado del Panel", status_panel),
-        "3": ("Listado de Clientes", status_users),
-        "4": ("Configurar Correo", configurar_mail),
-        "5": ("Ver Configuración", ver_configuracion),
-        "6": ("Eliminar Configuración", del_config),
+        "1": ("Ver Cuenta", c.status_account),
+        "2": ("Ver Panel", c.status_panel),
+        "3": ("Lista de Clientes", c.status_users),
+        "4": ("Ayustes", menu_ajustes),
         "0": ("Salir", None)
     }
 
@@ -39,13 +65,11 @@ def Menu():
         opcion = input("Seleccione una opción: ").strip()
 
         if opcion == "0":
-            con.session.close()
-            print("\nSesión cerrada.")
-            sys.exit()
+            c.cerrar()
 
         accion = menu.get(opcion)
 
-        if accion:
+        if accion and accion[1]:
             limpiar_pantalla()
             print(f">>> {accion[0]}\n")
             accion[1]()

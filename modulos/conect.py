@@ -1,9 +1,43 @@
+import sys
+import json
 import requests
 import pandas as pd
+from pathlib import Path
 from datetime import datetime
 from getpass import getpass
-from .c_json import *
 from requests.exceptions import Timeout, RequestException
+
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys.executable).parent
+else:
+    BASE_DIR = Path(__file__).resolve().parents[1]
+
+CONFIG_PATH = BASE_DIR / "config.json"
+
+def j_config():
+    if not CONFIG_PATH.exists():
+        config_default = {
+            "MAIL": {
+                "NOMBRE": "",
+                "CORREO": "",
+                "CLAVE": "",
+                "SERVER": "",
+                "PORT": None,
+                "SECURITY": ""
+            },
+            "URLS": {
+                "API": "https://api.navixy.com/v2",
+                "PANEL_AUTH": "https://api.navixy.com/v2/panel/account/auth",
+                "USER_LIST": "https://api.navixy.com/v2/panel/user/list",
+                "TRACKER_LIST": "https://panel.navixy.com/api-v2/panel/tracker/list"
+            },
+            "RUTA": ""
+        }
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(config_default, f, indent=4)
+
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 # CLIENTE NAVIXY
 class ConectNvx:
@@ -151,3 +185,5 @@ class ConectNvx:
     # CERRAR SESIÓN
     def close(self):
         self.session.close()
+        print("\nSesión cerrada.")
+        sys.exit()

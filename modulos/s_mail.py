@@ -1,5 +1,5 @@
 import smtplib
-from .c_json import *
+from .conect import *
 from email.message import EmailMessage
 
 class Mensajes:
@@ -91,5 +91,146 @@ class Mensajes:
             print(f"Error inesperado: {e}")
             return False
 
-        
+class MailConfig:
+    def __init__(self):
+        self.info = self.cargar_config()
+
+    # CARGAR CONFIG
+    @staticmethod
+    def cargar_config():
+        if not CONFIG_PATH.exists():
+            config_default = {
+                "MAIL": {
+                    "NOMBRE": "",
+                    "CORREO": "",
+                    "CLAVE": "",
+                    "SERVER": "",
+                    "PORT": None,
+                    "SECURITY": ""
+                }
+            }
+
+            CONFIG_PATH.write_text(
+                json.dumps(config_default, indent=4, ensure_ascii=False),
+                encoding="utf-8"
+            )
+
+            return config_default
+        return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+
+    # VER CONFIGURACION
+    def ver_configuracion(self):
+        print("\n...Configuración Actual...\n")
+
+        mail = self.info.get("MAIL", {})
+
+        print(f"Nombre     : {mail.get('NOMBRE')}")
+        print(f"Correo     : {mail.get('CORREO')}")
+        print(f"Servidor   : {mail.get('SERVER')}")
+        print(f"Puerto     : {mail.get('PORT')}")
+        print(f"Seguridad  : {mail.get('SECURITY')}")
+
+    # VERIFICAR CONFIG
+    def mail_config_incompleta(self):
+
+        campos = ["NOMBRE", "CORREO", "CLAVE"]
+
+        for campo in campos:
+            valor = self.info["MAIL"].get(campo)
+            if not valor or str(valor).strip() == "":
+                return True
+
+        return False
+
+    # ===================================================================================
+    # ===================================================================================
+    # CONFIGURAR MAIL
+    def configurar_mail(self):
+
+        print("\n# Configuración de Correo #\n")
+
+        nombre = input("Nombre: ").strip()
+        correo = input("Email: ").strip()
+        clave = getpass("Password: ")
+        server = input("SMTP Server: ").strip()
+
+        print("\nTipo de seguridad:")
+        print("1 - SSL (Puerto 465)")
+        print("2 - TLS (Puerto 587)")
+
+        opcion = input("Seleccione: ")
+
+        if opcion == "2":
+            security = "TLS"
+            puerto = 587
+        else:
+            security = "SSL"
+            puerto = 465
+
+        if not self.validar_smtp(correo, clave, server, puerto, security):
+            print("# Error en SMTP #")
+            return
+
+        self.info["MAIL"] = {
+            "NOMBRE": nombre,
+            "CORREO": correo,
+            "CLAVE": clave,
+            "SERVER": server,
+            "PORT": puerto,
+            "SECURITY": security
+        }
+
+        self.guardar_config()
+        print("✔ Configuración guardada")
+
+    # GUARDAR CONFIGURACION
+    def guardar_config(self):
+        CONFIG_PATH.write_text(
+            json.dumps(self.info, indent=4, ensure_ascii=False),
+            encoding="utf-8"
+        )
+
+    # ELIMINAR CONFIGURACION
+    def del_config(self):
+        confirm = input("¿Seguro que desea eliminar la configuración? (s/n): ").lower()
+
+        if confirm != "s":
+            print("Operación cancelada")
+            return
+
+        self.info["MAIL"] = {
+            "NOMBRE": "",
+            "CORREO": "",
+            "CLAVE": "",
+            "SERVER": "",
+            "PORT": None,
+            "SECURITY": ""
+        }
+
+        self.guardar_config()
+        print("✔ Configuración eliminada")
+
+    # VALIDAR SMTP
+    @staticmethod
+    def validar_smtp(correo, clave, server, puerto, security):
+        try:
+            if security == "TLS":
+                with smtplib.SMTP(server, puerto, timeout=10) as smtp:
+                    smtp.ehlo()
+                    smtp.starttls()
+                    smtp.ehlo()
+                    smtp.login(correo, clave)
+
+            else:
+                with smtplib.SMTP_SSL(server, puerto, timeout=10) as smtp:
+                    smtp.login(correo, clave)
+
+            print("✔ Conexión SMTP exitosa")
+            return True
+
+        except Exception as e:
+            print(f"Error SMTP: {e}")
+            return False
+
+
 
