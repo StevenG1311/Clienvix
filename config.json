@@ -1,11 +1,11 @@
 {
     "MAIL": {
-        "NOMBRE": "Steven Garcia",
-        "CORREO": "sgarcia@aurora.com.do",
-        "CLAVE": "Sg1234567",
-        "SERVER": "smtp.ipower.com",
-        "PORT": 587,
-        "SECURITY": "TLS"
+        "NOMBRE": "",
+        "CORREO": "",
+        "CLAVE": "",
+        "SERVER": "",
+        "PORT": None,
+        "SECURITY": ""
     },
     "URLS": {
         "API": "https://api.navixy.com/v2",
@@ -13,5 +13,5 @@
         "USER_LIST": "https://api.navixy.com/v2/panel/user/list",
         "TRACKER_LIST": "https://panel.navixy.com/api-v2/panel/tracker/list"
     },
-    "RUTA": "/home/soporte/Documentos"
+    "RUTA": ""
 }
