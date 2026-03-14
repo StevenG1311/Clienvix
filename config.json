@@ -4,11 +4,7 @@
         "CORREO": "",
         "CLAVE": "",
         "SERVER": "",
-<<<<<<< HEAD
-        "PORT": None,
-=======
         "PORT": null,
->>>>>>> 265cfce (Version 1.3)
         "SECURITY": ""
     },
     "URLS": {

@@ -297,18 +297,19 @@ class ConectNvx:
 
                 data = response.json()
 
+                errores = {
+                    3: "Sesión expirada",
+                    15: "Rate limiter",
+                    102: "Usuario o contraseña incorrectos"
+                }
+
                 if not data.get("success"):
 
                     status_code = data.get("status", {}).get("code")
 
-                    if status_code == 15:
+                    if status_code == errores:
                         time.sleep(1)
                         continue
-
-                    errores = {
-                        3: "Sesión expirada",
-                        102: "Usuario o contraseña incorrectos"
-                    }
 
                     raise Exception(
                         errores.get(status_code)
