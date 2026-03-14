@@ -38,10 +38,10 @@ class ApiFilter:
     def filtrar_trackers_offline(df):
 
         print("\nFiltrar dispositivos offline:")
-        print("1 - Más de X días")
-        print("2 - Más de X meses")
+        print("1 - X días")
+        print("2 - X meses")
 
-        opcion = input(">: ").strip()
+        opcion = input(">>>: ").strip()
 
         try:
 
@@ -95,7 +95,6 @@ class ApiFilter:
         opcion = input("¿Aplicar filtro offline? (s/n): ").lower()
 
         if opcion == "s":
-
             df = self.filtrar_trackers_offline(df)
 
             if df.empty:
@@ -161,7 +160,7 @@ class ApiFilter:
         print("\n1 - Guardar Localmente")
         print("2 - Enviar por Email")
 
-        opcion = input(">: ")
+        opcion = input(">>>: ")
 
         if opcion == "1":
 

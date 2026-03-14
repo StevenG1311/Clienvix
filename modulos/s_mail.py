@@ -130,6 +130,8 @@ class MailConfig:
         print(f"Puerto     : {mail.get('PORT')}")
         print(f"Seguridad  : {mail.get('SECURITY')}")
 
+        input("\nENTER para continuar...")
+
     # VERIFICAR CONFIG
     def mail_config_incompleta(self):
 

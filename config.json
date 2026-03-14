@@ -4,14 +4,20 @@
         "CORREO": "",
         "CLAVE": "",
         "SERVER": "",
+<<<<<<< HEAD
         "PORT": None,
+=======
+        "PORT": null,
+>>>>>>> 265cfce (Version 1.3)
         "SECURITY": ""
     },
     "URLS": {
         "API": "https://api.navixy.com/v2",
         "PANEL_AUTH": "https://api.navixy.com/v2/panel/account/auth",
         "USER_LIST": "https://api.navixy.com/v2/panel/user/list",
-        "TRACKER_LIST": "https://panel.navixy.com/api-v2/panel/tracker/list"
+        "USER_HASH":"https://api.navixy.com/v2/panel/user/session/create",
+        "TRACKER_LIST": "https://panel.navixy.com/api-v2/panel/tracker/list",
+        "TRACKER_STATES":"https://api.navixy.com/v2/tracker/get_states"
     },
     "RUTA": ""
 }
