@@ -1,12 +1,12 @@
 import sys
 import json
 import time
+import pwinput
 import requests
 import threading
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-from getpass import getpass
 from requests.exceptions import Timeout, RequestException
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -52,7 +52,7 @@ class ConectNvx:
         self.rate_limiter = RateLimiter()
 
         self.user = input("User: ")
-        self.password = getpass("Password: ")
+        self.password = pwinput.pwinput("Password: ", mask='*')
 
         self.url_panel = self.config["URLS"]["PANEL_AUTH"]
         self.url_user = self.config["URLS"]["USER_LIST"]
