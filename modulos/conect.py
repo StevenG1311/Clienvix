@@ -6,6 +6,7 @@ import requests
 import threading
 import pandas as pd
 from pathlib import Path
+from getpass import getpass
 from datetime import datetime
 from requests.exceptions import Timeout, RequestException
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -32,7 +33,7 @@ def j_config():
                 "API": "https://api.navixy.com/v2",
                 "PANEL_AUTH": "https://api.navixy.com/v2/panel/account/auth",
                 "USER_LIST": "https://api.navixy.com/v2/panel/user/list",
-                "USER_HASH": "https://api.navixy.com/v2/panel/user/session/create",
+                "USER_HASH":"https://api.navixy.com/v2/panel/user/session/create",
                 "TRACKER_LIST": "https://panel.navixy.com/api-v2/panel/tracker/list",
                 "TRACKER_STATES":"https://api.navixy.com/v2/tracker/get_states"
             },
@@ -48,11 +49,14 @@ def j_config():
 class ConectNvx:
     def __init__(self):
         self.config = j_config()
-
         self.rate_limiter = RateLimiter()
 
         self.user = input("User: ")
-        self.password = pwinput.pwinput("Password: ", mask='*')
+
+        if sys.stdin.isatty():
+            self.password = pwinput.pwinput("Password: ", mask='*')
+        else:
+            self.password = getpass("Password: ")
 
         self.url_panel = self.config["URLS"]["PANEL_AUTH"]
         self.url_user = self.config["URLS"]["USER_LIST"]
@@ -165,8 +169,8 @@ class ConectNvx:
             "dealer_id",
             "network_name",
             "owner_name",
-            "last_connection",
             "connection_status",
+            "last_connection",
             "days_offline"
         ]
 
