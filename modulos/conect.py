@@ -141,8 +141,8 @@ class ConectNvx:
             "user_id",
             "dealer_id",
             "owner_name",
-            "last_connection",
-            "connection_status"
+            "connection_status",
+            "last_connection"
         ]
 
         df = df[columnas]

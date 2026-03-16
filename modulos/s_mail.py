@@ -93,30 +93,7 @@ class Mensajes:
 
 class MailConfig:
     def __init__(self):
-        self.info = self.cargar_config()
-
-    # CARGAR CONFIG
-    @staticmethod
-    def cargar_config():
-        if not CONFIG_PATH.exists():
-            config_default = {
-                "MAIL": {
-                    "NOMBRE": "",
-                    "CORREO": "",
-                    "CLAVE": "",
-                    "SERVER": "",
-                    "PORT": None,
-                    "SECURITY": ""
-                }
-            }
-
-            CONFIG_PATH.write_text(
-                json.dumps(config_default, indent=4, ensure_ascii=False),
-                encoding="utf-8"
-            )
-
-            return config_default
-        return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        self.info = j_config()
 
     # VER CONFIGURACION
     def ver_configuracion(self):
