@@ -4,7 +4,7 @@ m = MailConfig()
 c = ApiFilter()
 
 def limpiar_pantalla():
-    os.system("clear")
+    os.system("cls") if os.name ==  "nt" else os.system("clear")
 
 def menu_ajustes():
     ajustes = {
