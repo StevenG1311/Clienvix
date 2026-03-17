@@ -45,6 +45,14 @@ def j_config():
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def password():
+    if sys.stdin.isatty():
+        clave = pwinput.pwinput("Password: ", mask='*')
+    else:
+        clave = getpass("Password: ")
+
+    return clave
+
 # CLIENTE NAVIXY
 class ConectNvx:
     def __init__(self):
@@ -52,11 +60,7 @@ class ConectNvx:
         self.rate_limiter = RateLimiter()
 
         self.user = input("User: ")
-
-        if sys.stdin.isatty():
-            self.password = pwinput.pwinput("Password: ", mask='*')
-        else:
-            self.password = getpass("Password: ")
+        self.password = password()
 
         self.url_panel = self.config["URLS"]["PANEL_AUTH"]
         self.url_user = self.config["URLS"]["USER_LIST"]
@@ -186,18 +190,18 @@ class ConectNvx:
 
         network_map = {}
 
-        # 🔹 obtener usuarios
+        # obtener usuarios
         df_users = self.get_users()
 
         if df_users.empty:
             return {tid: None for tid in df_trackers["tracker_id"]}
 
-        # 🔹 usuarios activos
+        # usuarios activos
         active_users = set(
             df_users.loc[df_users["activated"] == True, "user_id"]
         )
 
-        # 🔹 agrupar trackers por usuario
+        # agrupar trackers por usuario
         user_groups = {
             user_id: group["tracker_id"].tolist()
             for user_id, group in df_trackers.groupby("user_id")
@@ -232,6 +236,7 @@ class ConectNvx:
 
         return network_map
 
+    # MULTIPROCESO PARA LOS REQUESTS DE PANEL
     def _process_user_networks(self, user_id: int, tracker_ids: list) -> dict:
 
         result = {tid: None for tid in tracker_ids}
@@ -341,6 +346,9 @@ class ConectNvx:
         print("\nSesión cerrada.")
         sys.exit()
 
+#==============================================================================================
+# CONTROLADOR DE RATE LIMITER
+#==============================================================================================
 class RateLimiter:
     def __init__(self, rate=40, per=1):
         self.rate = rate

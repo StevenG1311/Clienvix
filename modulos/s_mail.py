@@ -91,6 +91,9 @@ class Mensajes:
             print(f"Error inesperado: {e}")
             return False
 
+# ===================================================================================
+# CONFIGURAR MAIL
+# ===================================================================================
 class MailConfig:
     def __init__(self):
         self.info = j_config()
@@ -121,8 +124,6 @@ class MailConfig:
 
         return False
 
-    # ===================================================================================
-    # ===================================================================================
     # CONFIGURAR MAIL
     def configurar_mail(self):
 
@@ -130,7 +131,7 @@ class MailConfig:
 
         nombre = input("Nombre: ").strip()
         correo = input("Email: ").strip()
-        clave = getpass("Password: ")
+        clave = password()
         server = input("SMTP Server: ").strip()
 
         print("\nTipo de seguridad:")
