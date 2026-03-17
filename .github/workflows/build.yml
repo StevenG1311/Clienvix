@@ -29,7 +29,7 @@ jobs:
 
     - name: Build EXE (Console Mode)
       run: |
-        venv\Scripts\pyinstaller --onefile --clean --hidden-import=openpyxl --name Clienvix main.py
+        venv\Scripts\pyinstaller --onefile --clean --hidden-import=openpyxl --icon=icono.ico --name Clienvix main.py
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
