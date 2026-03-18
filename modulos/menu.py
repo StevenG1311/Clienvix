@@ -3,6 +3,9 @@ from .core_filter import *
 m = MailConfig()
 c = ApiFilter()
 
+def limpiar():
+    os.system("cls") if sys == "nt" else os.system("clear")
+
 def menu_ajustes():
     ajustes = {
         "1": ("Configurar Correo", m.configurar_mail),
@@ -13,6 +16,7 @@ def menu_ajustes():
     }
 
     while True:
+        limpiar()
         print("-" * 45)
         print(" AJUSTES ")
         print("-" * 45)
@@ -30,6 +34,7 @@ def menu_ajustes():
         accion = ajustes.get(opcion)
 
         if accion and accion[1]:
+            limpiar()
             print(f">>> {accion[0]}\n")
             accion[1]()
         else:
@@ -46,6 +51,7 @@ def Menu():
     }
 
     while True:
+        limpiar()
         print("-" * 45)
         print(" MENU ")
         print("-" * 45)
@@ -63,6 +69,7 @@ def Menu():
         accion = menu.get(opcion)
 
         if accion and accion[1]:
+            limpiar()
             print(f">>> {accion[0]}\n")
             accion[1]()
         else:

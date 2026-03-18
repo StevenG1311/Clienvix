@@ -100,7 +100,7 @@ class MailConfig:
 
     # VER CONFIGURACION
     def ver_configuracion(self):
-        print("\n...Configuración Actual...\n")
+        print("...Configuración Actual...")
 
         mail = self.info.get("MAIL", {})
 
@@ -127,7 +127,7 @@ class MailConfig:
     # CONFIGURAR MAIL
     def configurar_mail(self):
 
-        print("\n# Configuración de Correo #\n")
+        print("...Configuración de Correo...")
 
         nombre = input("Nombre: ").strip()
         correo = input("Email: ").strip()
@@ -161,7 +161,7 @@ class MailConfig:
         }
 
         self.guardar_config()
-        print("✔ Configuración guardada")
+        print("...Configuración guardada...")
 
     # GUARDAR CONFIGURACION
     def guardar_config(self):
@@ -175,7 +175,7 @@ class MailConfig:
         confirm = input("¿Seguro que desea eliminar la configuración? (s/n): ").lower()
 
         if confirm != "s":
-            print("Operación cancelada")
+            print("# Operación cancelada #")
             return
 
         self.info["MAIL"] = {
@@ -188,7 +188,7 @@ class MailConfig:
         }
 
         self.guardar_config()
-        print("✔ Configuración eliminada")
+        print("...Configuración eliminada...")
 
     # VALIDAR SMTP
     @staticmethod
@@ -205,7 +205,7 @@ class MailConfig:
                 with smtplib.SMTP_SSL(server, puerto, timeout=10) as smtp:
                     smtp.login(correo, clave)
 
-            print("✔ Conexión SMTP exitosa")
+            print("...Conexión SMTP exitosa...")
             return True
 
         except Exception as e:
