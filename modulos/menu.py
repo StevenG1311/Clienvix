@@ -47,7 +47,7 @@ def Menu():
 
     while True:
         print("-" * 45)
-        print(" Clienvix!\n MENU ")
+        print(" MENU ")
         print("-" * 45)
 
         for key, (descripcion, _) in menu.items():

@@ -8,7 +8,6 @@ import pandas as pd
 from pathlib import Path
 from getpass import getpass
 from datetime import datetime
-from requests.exceptions import Timeout, RequestException
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 if getattr(sys, 'frozen', False):
@@ -80,15 +79,11 @@ class ConectNvx:
 
         response = self._post(self.url_panel, payload)
 
-        if not response:
-            raise SystemExit("No se pudo autenticar.")
+        if not response.get('success'):
+            print(response.get('status').get('description'))
+            self.close()
 
-        hash_value = response.get("hash")
-
-        if not hash_value:
-            raise Exception("No se recibió hash de autenticación.")
-
-        return hash_value
+        return response.get('hash')
 
     # USUARIOS
     def get_users(self) -> pd.DataFrame:
@@ -275,68 +270,24 @@ class ConectNvx:
         states = states_resp.get("states", {})
 
         for tracker_id, tracker_data in states.items():
-
             gsm = tracker_data.get("gsm")
-
             if isinstance(gsm, dict):
                 result[int(tracker_id)] = gsm.get("network_name")
 
         return result
 
     # REQUEST CENTRAL
-    def _post(self, url: str, payload: dict, retries=4) -> dict | None:
+    def _post(self, url: str, payload: dict, retries = 4) -> dict | None:
 
         for attempt in range(retries):
-
             try:
-
                 self.rate_limiter.wait()
+                response = self.session.post( url, data = payload, timeout = 10)
 
-                response = self.session.post(
-                    url,
-                    data=payload,
-                    timeout=15
-                )
-
-                if response.status_code == 429:
-                    time.sleep(2 * (attempt + 1))
-                    continue
-
-                response.raise_for_status()
-
-                data = response.json()
-
-                errores = {
-                    3: "Sesión expirada",
-                    15: "Rate limiter",
-                    102: "Usuario o contraseña incorrectos"
-                }
-
-                if not data.get("success"):
-
-                    status_code = data.get("status", {}).get("code")
-
-                    if status_code == errores:
-                        time.sleep(1)
-                        continue
-
-                    raise Exception(
-                        errores.get(status_code)
-                    )
-
-                return data
-
-            except Timeout:
-                print("Timeout: el servidor tarda mucho en responder.")
-                time.sleep(1)
-
-            except RequestException as e:
-                print(f"Error de conexión: {e}")
-                time.sleep(1)
+                return response.json()
 
             except Exception as e:
-                print(f"Error no capturado: {e}")
-                return None
+                print(f"Error desconocido: {e}")
 
         return None
 
