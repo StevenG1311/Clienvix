@@ -155,6 +155,16 @@ class ApiFilter:
 
     def export_excel(self, df):
 
+        import re
+
+        def limpiar_valor(valor):
+            if isinstance(valor, str):
+                return re.sub(r'[\x00-\x1F\x7F-\x9F]', '', valor)
+            return valor
+
+        for col in df.select_dtypes(include=["object", "string"]).columns:
+            df[col] = df[col].map(limpiar_valor)
+
         archivo = f"Reporte_{datetime.now():%Y%m%d_%H%M}.xlsx"
 
         print("\n1 - Guardar Localmente")
