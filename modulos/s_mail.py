@@ -162,6 +162,7 @@ class MailConfig:
 
         self.guardar_config()
         print("...Configuración guardada...")
+        input("\nENTER para continuar...")
 
     # GUARDAR CONFIGURACION
     def guardar_config(self):
@@ -189,6 +190,7 @@ class MailConfig:
 
         self.guardar_config()
         print("...Configuración eliminada...")
+        input("\nENTER para continuar...")
 
     # VALIDAR SMTP
     @staticmethod
@@ -206,6 +208,7 @@ class MailConfig:
                     smtp.login(correo, clave)
 
             print("...Conexión SMTP exitosa...")
+            input("\nENTER para continuar...")
             return True
 
         except Exception as e:

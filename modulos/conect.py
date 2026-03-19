@@ -130,8 +130,11 @@ class ConectNvx:
         df = pd.DataFrame(trackers)
         df.rename(columns={"id": "tracker_id"}, inplace=True)
 
-        df["connection_status"] = df["source"].apply(
-            lambda x: x.get("connection_status") if isinstance(x, dict) else None
+        df[["connection_status", "phone"]] = df["source"].apply(
+            lambda x: pd.Series({
+                "connection_status": x.get("connection_status") if isinstance(x, dict) else None,
+                "phone": x.get("phone") if isinstance(x, dict) else None
+            })
         )
 
         columnas = [
@@ -140,6 +143,7 @@ class ConectNvx:
             "user_id",
             "dealer_id",
             "owner_name",
+            "phone",
             "connection_status",
             "last_connection"
         ]
@@ -166,8 +170,9 @@ class ConectNvx:
             "label",
             "user_id",
             "dealer_id",
-            "network_name",
             "owner_name",
+            "phone",
+            "network_name",
             "connection_status",
             "last_connection",
             "days_offline"

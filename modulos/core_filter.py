@@ -164,7 +164,7 @@ class ApiFilter:
 
         if opcion == "1":
 
-            ruta = self.mail_config.info.get("RUTA")
+            ruta = self.mail_config.info.get("RUTA", "")
 
             if not ruta:
                 ruta = input("Ruta (ej: C:/home/user/reportes): ").strip()
