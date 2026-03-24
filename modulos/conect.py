@@ -234,15 +234,16 @@ class ConectNvx:
                     )
                 )
 
+            # BARRA DE CARGA
             if futures:
-                for future in tqdm(as_completed(futures), total=len(futures), desc="Consultando API"):
+                for future in tqdm(as_completed(futures), total=len(futures), desc="Consultando NAVIXY"):
                     result = future.result()
                     if result:
                         network_map.update(result)
             else:
                 # Barra simulada (feedback visual)
-                for _ in tqdm(range(1), desc="Consultando API"):
-                    tqdm.write("Consultando API... (sin datos para procesar)")
+                for _ in tqdm(range(1), desc="Consultando NAVIXY"):
+                    tqdm.write("Consultando NAVIXY... (sin datos para procesar)")
 
         return network_map
 
