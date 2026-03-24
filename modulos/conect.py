@@ -5,9 +5,11 @@ import pwinput
 import requests
 import threading
 import pandas as pd
+
+from tqdm import tqdm
 from pathlib import Path
-from getpass import getpass
 from datetime import datetime
+from getpass import getpass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 if getattr(sys, 'frozen', False):
@@ -44,6 +46,10 @@ def j_config():
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def user():
+    usuario = input("User: ")
+    return usuario
+
 def password():
     if sys.stdin.isatty():
         clave = pwinput.pwinput("Password: ", mask='*')
@@ -54,12 +60,12 @@ def password():
 
 # CLIENTE NAVIXY
 class ConectNvx:
-    def __init__(self):
+    def __init__(self, usuario, clave):
         self.config = j_config()
         self.rate_limiter = RateLimiter()
 
-        self.user = input("User: ")
-        self.password = password()
+        self.user = usuario
+        self.password = clave
 
         self.url_panel = self.config["URLS"]["PANEL_AUTH"]
         self.url_user = self.config["URLS"]["USER_LIST"]
@@ -89,6 +95,7 @@ class ConectNvx:
     def get_users(self) -> pd.DataFrame:
         payload = {"hash": self.hash}
         response = self._post(self.url_user, payload)
+        print("Consultando usuarios...")
 
         if not response:
             return pd.DataFrame()
@@ -227,12 +234,15 @@ class ConectNvx:
                     )
                 )
 
-            for future in as_completed(futures):
-
-                result = future.result()
-
-                if result:
-                    network_map.update(result)
+            if futures:
+                for future in tqdm(as_completed(futures), total=len(futures), desc="Consultando API"):
+                    result = future.result()
+                    if result:
+                        network_map.update(result)
+            else:
+                # Barra simulada (feedback visual)
+                for _ in tqdm(range(1), desc="Consultando API"):
+                    tqdm.write("Consultando API... (sin datos para procesar)")
 
         return network_map
 
@@ -293,6 +303,7 @@ class ConectNvx:
 
             except Exception as e:
                 print(f"Error desconocido: {e}")
+                self.close()
 
         return None
 
