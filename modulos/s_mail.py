@@ -4,9 +4,9 @@ from email.message import EmailMessage
 from pathlib import Path
 from .conect import j_config, password, CONFIG_PATH
 
-# ==========================
+# ==============================================================================
 # SMTP CORE
-# ==========================
+# ==============================================================================
 def _get_smtp_connection(server, port, security):
     if security == "TLS":
         smtp = smtplib.SMTP(server, port)
@@ -37,9 +37,9 @@ def smtp_send(server, port, mail, clave, security, msg: EmailMessage):
         print(f"<< Error inesperado: {e} >>")
         return False
 
-# ==========================
+# ==============================================================================
 # MENSAJES
-# ==========================
+# ==============================================================================
 class Mensajes:
     def __init__(self):
         info = j_config()["MAIL"]
@@ -52,6 +52,7 @@ class Mensajes:
         self.msg = None
         self.report_excel = None
 
+    # CREAR MENSAJE CON ARCHIVO ADJUNTO ============================================================
     def crear_mensaje(self, report_file):
         msg = EmailMessage()
         msg["From"] = f"{self.nombre} <{self.mail}>"
@@ -81,6 +82,7 @@ class Mensajes:
         self.msg = msg
         self.report_excel = path
 
+    # ENVIAR MENSAJE ============================================================
     def send(self):
         if not self.msg:
             print("<< No hay mensaje creado >>")
@@ -103,13 +105,14 @@ class Mensajes:
 
         return ok
 
-# ==========================
+# ==============================================================================
 # CONFIGURACIÓN
-# ==========================
+# ==============================================================================
 class MailConfig:
     def __init__(self):
         self.info = j_config()
 
+    # VER CONFIGURACIÓN ACTUAL ============================================================
     def ver_configuracion(self):
         mail = self.info.get("MAIL", {})
 
@@ -119,11 +122,13 @@ class MailConfig:
 
         input("ENTER para continuar...")
 
+    # VERIFICAR CONFIGURACIÓN DE CORREO =======================================================
     def mail_config_incompleta(self):
         mail = self.info.get("MAIL", {})
         return any(not str(mail.get(campo, "")).strip()
                    for campo in ["NOMBRE", "CORREO", "CLAVE"])
 
+    # CONFIGURAR CORREO ============================================================
     def configurar_mail(self):
         print("<< Configuración de Correo >>")
 
@@ -150,12 +155,14 @@ class MailConfig:
         self.guardar_config()
         print("<< Configuración guardada >>")
 
+    # GUARDAR CONFIGURACIÓN EN ARCHIVO JSON ==================================================
     def guardar_config(self):
         CONFIG_PATH.write_text(
             json.dumps(self.info, indent=4, ensure_ascii=False),
             encoding="utf-8"
         )
 
+    # ELIMINAR CONFIGURACIÓN ============================================================
     def del_config(self):
         if input(">> Eliminar configuración (s/n): ").lower() != "s":
             return
@@ -172,6 +179,7 @@ class MailConfig:
         self.guardar_config()
         print("<< Configuración eliminada >>")
 
+    # VALIDAR CONFIGURACIÓN SMTP ============================================================
     @staticmethod
     def validar_smtp(correo, clave, server, puerto, security):
         msg = EmailMessage()

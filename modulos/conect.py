@@ -12,6 +12,10 @@ from datetime import datetime
 from getpass import getpass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
+# ==================================================================================================
+# CONFIGURACIÓN Y CONEXIÓN A NAVIXY 
+# ==================================================================================================
 if getattr(sys, 'frozen', False):
     BASE_DIR = Path(sys.executable).parent
 else:
@@ -19,6 +23,7 @@ else:
 
 CONFIG_PATH = BASE_DIR / "config.json"
 
+# VERIFICAR EXISTENCIA DE ARCHVIO DE CONFIGURACIÓN ================================================
 def j_config():
     if not CONFIG_PATH.exists():
         config_default = {
@@ -46,6 +51,7 @@ def j_config():
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
+# FUNCIONES DE ENTRADA DE USUARIO & PASSWORD ============================================================
 def user():
     usuario = input("User: ")
     return usuario
@@ -58,7 +64,9 @@ def password():
 
     return clave
 
+# =========================================================================================================
 # CLIENTE NAVIXY
+# =========================================================================================================
 class ConectNvx:
     def __init__(self, usuario, clave):
         self.config = j_config()
@@ -76,7 +84,7 @@ class ConectNvx:
         self.session = requests.Session()
         self.hash = self._login()
 
-    # LOGIN
+    # LOGIN ==============================================================================================
     def _login(self) -> str:
         payload = {
             "login": self.user,
@@ -85,17 +93,26 @@ class ConectNvx:
 
         response = self._post(self.url_panel, payload)
 
-        if not response.get('success'):
-            print(response.get('status').get('description'))
-            self.close()
+        # Validar tipo de respuesta
+        if not isinstance(response, dict):
+            raise Exception("Respuesta inválida del servidor")
 
-        return response.get('hash')
-
-    # USUARIOS
+        # Validar autenticación
+        if not response.get("success", False):
+            error_msg = (
+                response.get("status", {})
+                    .get("description")
+            )
+            self.session.close()
+            raise Exception(error_msg)
+            
+        # Retornar token/hash (ajusta según tu API)
+        return response.get("hash")
+    
+    # OBTENER USUARIOS ===================================================================================
     def get_users(self) -> pd.DataFrame:
         payload = {"hash": self.hash}
         response = self._post(self.url_user, payload)
-        print("Consultando usuarios...")
 
         if not response:
             return pd.DataFrame()
@@ -122,7 +139,7 @@ class ConectNvx:
 
         return df
 
-    # TRACKERS
+    # OBTENER TRACKERS ====================================================================================
     def get_trackers(self) -> pd.DataFrame:
         payload = {"hash": self.hash}
         response = self._post(self.url_tracker, payload)
@@ -137,10 +154,12 @@ class ConectNvx:
         df = pd.DataFrame(trackers)
         df.rename(columns={"id": "tracker_id"}, inplace=True)
 
-        df[["connection_status", "phone"]] = df["source"].apply(
+        df[["connection_status", "phone", "model", "device_id"]] = df["source"].apply(
             lambda x: pd.Series({
                 "connection_status": x.get("connection_status") if isinstance(x, dict) else None,
-                "phone": x.get("phone") if isinstance(x, dict) else None
+                "phone": x.get("phone") if isinstance(x, dict) else None,
+                "model":x.get("model") if isinstance(x, dict) else None,
+                "device_id": x.get("device_id") if isinstance(x, dict) else None
             })
         )
 
@@ -151,6 +170,8 @@ class ConectNvx:
             "dealer_id",
             "owner_name",
             "phone",
+            "model",
+            "device_id",
             "connection_status",
             "last_connection"
         ]
@@ -179,6 +200,8 @@ class ConectNvx:
             "dealer_id",
             "owner_name",
             "phone",
+            "model",
+            "device_id",
             "network_name",
             "connection_status",
             "last_connection",
@@ -189,7 +212,7 @@ class ConectNvx:
 
         return df
 
-    # NETWORK NAME
+    # NETWORK NAME ====================================================================================
     def get_trackers_network_name(self, df_trackers: pd.DataFrame) -> dict:
 
         if df_trackers.empty:
@@ -247,7 +270,7 @@ class ConectNvx:
 
         return network_map
 
-    # MULTIPROCESO PARA LOS REQUESTS DE PANEL
+    # MULTIPROCESO PARA LOS REQUESTS DE PANEL =================================================================
     def _process_user_networks(self, user_id: int, tracker_ids: list) -> dict:
 
         result = {tid: None for tid in tracker_ids}
@@ -292,31 +315,24 @@ class ConectNvx:
 
         return result
 
-    # REQUEST CENTRAL
+    # REQUEST CENTRAL ===============================================================================
     def _post(self, url: str, payload: dict, retries = 4) -> dict | None:
 
         for attempt in range(retries):
             try:
                 self.rate_limiter.wait()
                 response = self.session.post( url, data = payload, timeout = 10)
-
                 return response.json()
 
             except Exception as e:
                 print(f"Error desconocido: {e}")
-                self.close()
+                self.session.close()
 
         return None
 
-    # CERRAR SESIÓN
-    def close(self):
-        self.session.close()
-        print("\nSesión cerrada.")
-        sys.exit()
-
-#==============================================================================================
+# ==============================================================================================
 # CONTROLADOR DE RATE LIMITER
-#==============================================================================================
+# ==============================================================================================
 class RateLimiter:
     def __init__(self, rate=40, per=1):
         self.rate = rate
