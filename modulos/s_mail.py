@@ -8,6 +8,8 @@ from .conect import j_config, password, CONFIG_PATH
 # SMTP CORE
 # ==============================================================================
 def _get_smtp_connection(server, port, security):
+    '''Establece una conexión SMTP utilizando el tipo de seguridad especificado (TLS o SSL) 
+    y devuelve el objeto de conexión.'''
     if security == "TLS":
         smtp = smtplib.SMTP(server, port)
         smtp.ehlo()
@@ -22,6 +24,7 @@ def _get_smtp_connection(server, port, security):
         raise ValueError("<< Tipo de seguridad inválido >>")
 
 def smtp_send(server, port, mail, clave, security, msg: EmailMessage):
+    '''Envía un correo electrónico utilizando la configuración SMTP proporcionada y el mensaje especificado.'''
     try:
         with _get_smtp_connection(server, port, security) as smtp:
             smtp.login(mail, clave)
@@ -41,6 +44,8 @@ def smtp_send(server, port, mail, clave, security, msg: EmailMessage):
 # MENSAJES
 # ==============================================================================
 class Mensajes:
+    '''Esta clase se encarga de manejar la creación y envío de mensajes de correo electrónico, 
+    incluyendo la configuración SMTP y la gestión de archivos adjuntos.'''
     def __init__(self):
         info = j_config()["MAIL"]
         self.nombre = info["NOMBRE"]
@@ -54,6 +59,7 @@ class Mensajes:
 
     # CREAR MENSAJE CON ARCHIVO ADJUNTO ============================================================
     def crear_mensaje(self, report_file):
+        '''Crea un mensaje de correo electrónico con un archivo adjunto utilizando la configuración SMTP almacenada.'''
         msg = EmailMessage()
         msg["From"] = f"{self.nombre} <{self.mail}>"
         msg["To"] = input("To: ").strip()
@@ -84,6 +90,7 @@ class Mensajes:
 
     # ENVIAR MENSAJE ============================================================
     def send(self):
+        ''''Envía el mensaje de correo electrónico creado previamente utilizando la configuración SMTP almacenada.'''
         if not self.msg:
             print("<< No hay mensaje creado >>")
             return False
@@ -109,11 +116,14 @@ class Mensajes:
 # CONFIGURACIÓN
 # ==============================================================================
 class MailConfig:
+    '''Esta clase se encarga de manejar la configuración de correo electrónico, 
+    incluyendo la visualización, edición y eliminación de la configuración SMTP almacenada en un archivo JSON.'''
     def __init__(self):
         self.info = j_config()
 
     # VER CONFIGURACIÓN ACTUAL ============================================================
     def ver_configuracion(self):
+        '''Muestra la configuracion actual de correo electrónico almacenada en el archivo JSON.'''
         mail = self.info.get("MAIL", {})
 
         print("<< Configuración Actual >>")
@@ -124,12 +134,16 @@ class MailConfig:
 
     # VERIFICAR CONFIGURACIÓN DE CORREO =======================================================
     def mail_config_incompleta(self):
+        '''Verifica si hay un correo configurado.'''
         mail = self.info.get("MAIL", {})
         return any(not str(mail.get(campo, "")).strip()
                    for campo in ["NOMBRE", "CORREO", "CLAVE"])
 
     # CONFIGURAR CORREO ============================================================
     def configurar_mail(self):
+        '''Configura el correo electrónico solicitando al usuario la información necesaria, 
+        validando la conexión SMTP antes de guardar la configuración en el archivo JSON.'''
+
         print("<< Configuración de Correo >>")
 
         nombre = input("Nombre: ").strip()
@@ -157,6 +171,7 @@ class MailConfig:
 
     # GUARDAR CONFIGURACIÓN EN ARCHIVO JSON ==================================================
     def guardar_config(self):
+        '''Guarda la configuracion en el archivo JSON.'''
         CONFIG_PATH.write_text(
             json.dumps(self.info, indent=4, ensure_ascii=False),
             encoding="utf-8"
@@ -164,6 +179,7 @@ class MailConfig:
 
     # ELIMINAR CONFIGURACIÓN ============================================================
     def del_config(self):
+        '''Elimina la configuracion del correo almacendo en el archivo JSON.'''
         if input(">> Eliminar configuración (s/n): ").lower() != "s":
             return
 
@@ -182,6 +198,7 @@ class MailConfig:
     # VALIDAR CONFIGURACIÓN SMTP ============================================================
     @staticmethod
     def validar_smtp(correo, clave, server, puerto, security):
+        '''Metodo estatico. Valida si el correo configurado esta correcto mediante un mensaje de verificacion.'''
         msg = EmailMessage()
         msg["From"] = correo
         msg["To"] = correo

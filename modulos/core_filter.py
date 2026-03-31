@@ -9,6 +9,10 @@ from .s_mail import Mensajes, MailConfig
 # =============================================================================
 
 class ApiFilter:
+    '''Esta clase se encarga de manejar la consulta al API de navixy, 
+    aplicar filtros a los datos obtenidos, procesar la información y 
+    exportarla a Excel o enviarla por correo electrónico.'''
+
     def __init__(self, usuario, clave):
         self.con = ConectNvx(usuario, clave)
         self.mail = Mensajes()
@@ -16,6 +20,9 @@ class ApiFilter:
 
     # STATUS USERS ============================================================
     def status_users(self):
+        '''Consulta la lista de usuarios desde el API, 
+        aplica filtros según el estado (activos, inactivos o todos) y muestra los resultados.'''
+
         df = self.con.get_users()
 
         if df.empty:
@@ -34,6 +41,7 @@ class ApiFilter:
 
     # STATUS PANEL ================================================================
     def status_panel(self):
+        '''Consulta la lista de trackers desde el API, muestra los resultados y permite aplicar un filtro de offline.'''
         df = self.con.get_trackers()
 
         if df.empty:
@@ -44,6 +52,9 @@ class ApiFilter:
 
     # STATUS ACCOUNT ==============================================================
     def status_account(self):
+        '''Consulta la lista de trackers desde el API, permite filtrar por cuenta, 
+        muestra los resultados y permite aplicar un filtro de offline.'''
+
         cuenta = input(">> Nombre de la cuenta: ").strip().lower()
 
         df = self.con.get_trackers()
@@ -62,6 +73,8 @@ class ApiFilter:
 
     # PROCESAR STATUS PANEL O ACCOUNT ==========================================
     def procesar_status(self,df: pd.DataFrame):
+        '''Procesa el DataFrame de trackers, mostrando los resultados y permitiendo aplicar un filtro de offline.'''
+
         if df.empty:
             print("<< No hay registros >>")
             return
@@ -83,12 +96,13 @@ class ApiFilter:
 
     # EXPORTAR RESULTADOS A EXCEL ======================================================
     def export_prompt(self, df):
-
+        '''Muestra un prompt para exportar los resultados a Excel o enviarlos por correo electrónico.'''
         if input(">> Exportar (s/n): ").lower() == "s":
             self.export_excel(df)
 
     def export_excel(self, df):
-
+        '''Exporta el DataFrame a un archivo Excel, con opciones para
+        guardarlo localmente o enviarlo por correo electrónico.'''
         import re
         from .menu import SESSION_LABEL
 
@@ -142,11 +156,15 @@ class ApiFilter:
             input("ENTER para continuar...")
 
     def new_ruta(self):
+        '''Permite al usuario configurar una nueva ruta para guardar los archivos Excel, 
+        actualizando la configuración en el archivo JSON.'''
+
         new = input("Nueva ruta (ej: C:/home/user/reportes): ").strip()
         self.mail_config.info["RUTA"] = new
         self.mail_config.guardar_config()
 
     def cerrar(self):
+        '''Cierra la sesión de conexión al API.'''
         self.con.session.close()
         print("\nSesión cerrada.")
 
@@ -157,6 +175,9 @@ class ApiFilter:
     # FILTRO USUARIOS ==========================================================
     @staticmethod
     def filtrar_usuarios(df):
+        ''''Permite al usuario filtrar el DataFrame de usuarios por estado (activos, inactivos o todos) 
+        y devuelve el DataFrame filtrado.'''
+
         print("<< Filtrar usuarios >>")
         d = ("Activos", "Inactivos", "Todos")
 
@@ -183,6 +204,8 @@ class ApiFilter:
     # FILTRO TRACKERS ============================================================
     @staticmethod
     def filtrar_trackers_offline(df):
+        '''Permite al usuario filtrar el DataFrame de trackers por días offline,
+        solicitando la cantidad de días o meses como criterio de filtrado, y devuelve el DataFrame filtrado.'''
 
         print("<< Filtrar dias offline >>")
         d = ("Por dias", "Por mes")
@@ -217,6 +240,7 @@ class ApiFilter:
     # FORMATO DE TABLA A DOCUMENTO EXCEL =====================================================
     @staticmethod
     def _formatear_excel(ruta_archivo):
+        '''Aplica formato de tabla al archivo Excel generado, incluyendo estilos y autoajuste de columnas.'''
         from openpyxl import load_workbook
         from openpyxl.worksheet.table import Table, TableStyleInfo
         from openpyxl.utils import get_column_letter
