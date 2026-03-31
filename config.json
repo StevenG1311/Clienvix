@@ -15,5 +15,5 @@
         "TRACKER_LIST": "https://panel.navixy.com/api-v2/panel/tracker/list",
         "TRACKER_STATES": "https://api.navixy.com/v2/tracker/get_states"
     },
-    "RUTA": "/home/soporte/Descargas"
+    "RUTA": ""
 }

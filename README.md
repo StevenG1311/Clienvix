@@ -1,6 +1,3 @@
 Clienvix. 
 
-- App de escritorio CLI
-- Consulta el api de navixy para ver la lista de los clientes, trackers.
-- Consultar las ultimas actualizaciones de los GPS.
-- Realiza un informe en Excel que puede ser almacenado de manera local o enviado por correo.
+Es una aplicación de escritorio basada en interfaz de línea de comandos (CLI) diseñada para centralizar y automatizar la gestión de datos provenientes de la plataforma Navixy. Su objetivo principal es reducir los tiempos de consulta manual y mejorar la precisión en la generación de informes de estado de dispositivos.
