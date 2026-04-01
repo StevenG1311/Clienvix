@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from .core_filter import ApiFilter
 from .s_mail import MailConfig
 from .conect import user, password
@@ -22,19 +23,43 @@ def iniciar_sesion():
     '''Solicita al usuario que ingrese sus credenciales, intenta iniciar sesión y establece la sesión activa.'''
     global c, SESSION_LABEL
 
-    usuario = user()
-    clave = password()
+    intentos_maximo = 5
+    intentos_actuales = 0
 
-    try:
-        c = ApiFilter(usuario, clave)
-        SESSION_LABEL = f"Panel {usuario}"
-        print("<< Sesión iniciada >>")
+    while intentos_actuales < intentos_maximo:
+        usuario = user()
+        clave = password()
 
-    except Exception as e:
-        print(f"<< {e} >>")
-        sys.exit()
+        try:
+            c = ApiFilter(usuario, clave)
+            SESSION_LABEL = f"Panel {usuario}"
+            print("<< Sesión iniciada >>")
+            input("Presione ENTER para continuar...")
+            return
 
-    input("Presione ENTER para continuar...")
+        except Exception as e:
+            intentos_actuales += 1
+            intentos_restantes = intentos_maximo - intentos_actuales
+
+            print(f"<< Error: {e} >>")
+            if intentos_restantes > 0:
+                print(f"<< Quedan {intentos_restantes} intentos >>\n")
+
+                if intentos_restantes < 3:
+                    espera = 5 * (3 - intentos_restantes)  # Incrementa el tiempo de espera
+                    print("<< Verifica las credenciales >>")
+                    
+                    for i in range(espera, 0, -1):
+                        print(f"\rEspera {i} segundos...", end="")
+                        time.sleep(1)
+                    print("\n")
+
+            else:
+                print("<< Intentos agotados, cerrando programa >>")
+                # Solo cerramos si c realmente tiene una conexión activa
+                if c is not None:
+                    c.cerrar()
+                sys.exit()
 
 def cambiar_sesion():
     ''''Permite al usuario cerrar la sesión actual y volver a iniciar sesión con nuevas credenciales.'''

@@ -103,7 +103,7 @@ class ConectNvx:
 
         # Validar tipo de respuesta
         if not isinstance(response, dict):
-            raise Exception("Respuesta inválida del servidor")
+            raise Exception("Respuesta del servidor no es válida")
 
         # Validar autenticación
         if not response.get("success", False):
