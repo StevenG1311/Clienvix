@@ -9,9 +9,12 @@ from .s_mail import Mensajes, MailConfig
 # =============================================================================
 
 class ApiFilter:
-    '''Esta clase se encarga de manejar la consulta al API de navixy, 
-    aplicar filtros a los datos obtenidos, procesar la información y 
-    exportarla a Excel o enviarla por correo electrónico.'''
+    """Esta clase se encarga de manejar la consulta a navixy,
+    aplicar filtros a los datos obtenidos, procesar la información y
+    exportarla a Excel o enviarla por correo electrónico."""
+
+    ACTIVOS = {"true", "1"}
+    INACTIVOS = {"false", "0"}
 
     def __init__(self, usuario, clave):
         self.con = ConectNvx(usuario, clave)
@@ -20,63 +23,61 @@ class ApiFilter:
 
     # STATUS USERS ============================================================
     def status_users(self):
-        '''Consulta la lista de usuarios desde el API, 
-        aplica filtros según el estado (activos, inactivos o todos) y muestra los resultados.'''
+        """Consulta la lista de usuarios desde navixy,
+        aplica filtros según el estado (activos, inactivos o todos) y muestra los resultados."""
 
         df = self.con.get_users()
 
-        if df.empty:
-            print("<< No hay usuarios disponibles >>")
+        if self._is_empty(df, "<< No hay usuarios disponibles >>"):
             return
 
-        df = self.filtrar_usuarios(df)
+        opcion = input("1- Activos | 2- Inactivos | 3- Todos: ").strip()
+        df = self.filtrar_usuarios(df, opcion)
 
-        if df.empty:
-            print("<< No hay registros que cumplan el filtro >>")
+        if self._is_empty(df, "<< No hay registros que cumplan el filtro >>"):
             return
 
         print(df.to_string(index=True))
-
         self.export_prompt(df)
 
     # STATUS PANEL ================================================================
     def status_panel(self):
-        '''Consulta la lista de trackers desde el API, muestra los resultados y permite aplicar un filtro de offline.'''
+        """Consulta la lista de trackers desde navixy, muestra los resultados y permite aplicar un filtro de offline."""
         df = self.con.get_trackers()
 
-        if df.empty:
-            print("<< No hay trackers disponibles >>")
+        if self._is_empty(df, "<< No hay trackers disponibles >>"):
             return
 
         self.procesar_status(df)
 
     # STATUS ACCOUNT ==============================================================
     def status_account(self):
-        '''Consulta la lista de trackers desde el API, permite filtrar por cuenta, 
-        muestra los resultados y permite aplicar un filtro de offline.'''
+        """Consulta la lista de trackers desde navixy, permite filtrar por cuenta,
+        muestra los resultados y permite aplicar un filtro de offline."""
 
         cuenta = input(">> Nombre de la cuenta: ").strip().lower()
 
         df = self.con.get_trackers()
 
-        if df.empty:
-            print("<< No hay trackers disponibles >>")
+        if self._is_empty(df, "<< No hay trackers disponibles >>"):
+            return
+
+        if "owner_name" not in df.columns:
+            print("<< Columna 'owner_name' no encontrada >>")
             return
 
         df = df[df["owner_name"].str.lower().str.contains(cuenta, na=False)]
 
-        if df.empty:
-            print("<< No hay trackers para esa cuenta >>")
+        if self._is_empty(df, "<< No hay trackers para esa cuenta >>"):
             return
 
         self.procesar_status(df)
 
     # PROCESAR STATUS PANEL O ACCOUNT ==========================================
     def procesar_status(self,df: pd.DataFrame):
-        '''Procesa el DataFrame de trackers, mostrando los resultados y permitiendo aplicar un filtro de offline.'''
+        """Procesa el DataFrame de trackers, mostrando los resultados y permitiendo aplicar un filtro de offline."""
 
-        if df.empty:
-            print("<< No hay registros >>")
+        if self._is_empty(df):
             return
 
         opcion = input(">> Filtro offline (s/n)?: ").lower()
@@ -84,8 +85,7 @@ class ApiFilter:
         if opcion == "s":
             df = self.filtrar_trackers_offline(df)
 
-            if df.empty:
-                print("<< No hay registros >>")
+            if self._is_empty(df):
                 return
         else:
             if "days_offline" in df.columns:
@@ -96,15 +96,18 @@ class ApiFilter:
 
     # EXPORTAR RESULTADOS A EXCEL ======================================================
     def export_prompt(self, df):
-        '''Muestra un prompt para exportar los resultados a Excel o enviarlos por correo electrónico.'''
+        """Muestra un prompt para exportar los resultados a Excel o enviarlos por correo electrónico."""
         if input(">> Exportar (s/n): ").lower() == "s":
             self.export_excel(df)
 
     def export_excel(self, df):
-        '''Exporta el DataFrame a un archivo Excel, con opciones para
-        guardarlo localmente o enviarlo por correo electrónico.'''
+        """Exporta el DataFrame a un archivo Excel, con opciones para
+        guardarlo localmente o enviarlo por correo electrónico."""
         import re
         from .menu import SESSION_LABEL
+
+        # Evitar mutar el original
+        df = df.copy()
 
         def limpiar_valor(valor):
             if isinstance(valor, str):
@@ -117,21 +120,16 @@ class ApiFilter:
         archivo = f"Reporte_{SESSION_LABEL} - {datetime.now():%Y-%m-%d_%H-%M}.xlsx"
 
         print("<< Guardar archivo >>")
-        d = ("Local", "Enviar por correo")
-
-        for i in range(2):
-            print(f"{i + 1}- {d[i]}")
+        print("1- Local")
+        print("2- Enviar por correo")
 
         opcion = input(">>: ")
 
         if opcion == "1":
-
             ruta = self.mail_config.info.get("RUTA", "")
 
             if not ruta:
                 ruta = input("Ruta (ej: C:/home/user/reportes): ").strip()
-
-                # Guardar en la configuración
                 self.mail_config.info["RUTA"] = ruta
                 self.mail_config.guardar_config()
 
@@ -153,18 +151,19 @@ class ApiFilter:
 
             self.mail.crear_mensaje(archivo)
             self.mail.send()
+
             input("ENTER para continuar...")
 
     def new_ruta(self):
-        '''Permite al usuario configurar una nueva ruta para guardar los archivos Excel, 
-        actualizando la configuración en el archivo JSON.'''
+        """Permite al usuario configurar una nueva ruta para guardar los archivos Excel,
+        actualizando la configuración en el archivo JSON."""
 
         new = input("Nueva ruta (ej: C:/home/user/reportes): ").strip()
         self.mail_config.info["RUTA"] = new
         self.mail_config.guardar_config()
 
     def cerrar(self):
-        '''Cierra la sesión de conexión al API.'''
+        """Cierra la conexion con la sesion."""
         self.con.session.close()
         print("\nSesión cerrada.")
 
@@ -172,28 +171,35 @@ class ApiFilter:
     # METODOS ESTATICOS
     #===========================================================================
 
+    # HELPERS ============================================================
+    @staticmethod
+    def _is_empty(df, msg="<< No hay registros >>"):
+        if df.empty:
+            print(msg)
+            return True
+        return False
+
     # FILTRO USUARIOS ==========================================================
     @staticmethod
-    def filtrar_usuarios(df):
-        ''''Permite al usuario filtrar el DataFrame de usuarios por estado (activos, inactivos o todos) 
-        y devuelve el DataFrame filtrado.'''
+    def filtrar_usuarios(df, opcion):
+        """Permite al usuario filtrar el DataFrame de usuarios por estado (activos, inactivos o todos)
+        y devuelve el DataFrame filtrado."""
 
-        print("<< Filtrar usuarios >>")
-        d = ("Activos", "Inactivos", "Todos")
+        if df.empty:
+            return df
 
-        for i in range(3):
-            print(f"{i + 1}- {d[i]}")
-
-        opcion = input(">>: ").strip()
+        if "activated" not in df.columns:
+            print("<< Columna 'activated' no encontrada >>")
+            return pd.DataFrame()
 
         df = df.copy()
         df["activated"] = df["activated"].astype(str).str.lower()
 
         if opcion == "1":
-            return df[df["activated"].isin(["true", "1"])]
+            return df[df["activated"].isin(ApiFilter.ACTIVOS)]
 
         if opcion == "2":
-            return df[df["activated"].isin(["false", "0"])]
+            return df[df["activated"].isin(ApiFilter.INACTIVOS)]
 
         if opcion == "3":
             return df
@@ -204,43 +210,41 @@ class ApiFilter:
     # FILTRO TRACKERS ============================================================
     @staticmethod
     def filtrar_trackers_offline(df):
-        '''Permite al usuario filtrar el DataFrame de trackers por días offline,
-        solicitando la cantidad de días o meses como criterio de filtrado, y devuelve el DataFrame filtrado.'''
+        """Permite al usuario filtrar el DataFrame de trackers por días offline,
+        solicitando la cantidad de días o meses como criterio de filtrado, y devuelve el DataFrame filtrado."""
+
+        if df.empty:
+            return df
+
+        if "days_offline" not in df.columns:
+            print("<< Columna 'days_offline' no encontrada >>")
+            return pd.DataFrame()
 
         print("<< Filtrar dias offline >>")
-        d = ("Por dias", "Por mes")
-
-        for i in range(2):
-            print(f"{i + 1}- {d[i]}")
+        print("1- Por dias")
+        print("2- Por mes")
 
         opcion = input(">>: ").strip()
 
         try:
-
             if opcion == "1":
                 limite = int(input(">> Cantidad de días: "))
-
             elif opcion == "2":
                 meses = int(input(">> Cantidad de meses: "))
                 limite = meses * 30
-
             else:
                 return pd.DataFrame()
 
         except ValueError:
-
             print("<< Valor inválido >>")
             return pd.DataFrame()
 
         df = df[df["days_offline"] >= limite]
-
         return df.sort_values("days_offline", ascending=False)
-
 
     # FORMATO DE TABLA A DOCUMENTO EXCEL =====================================================
     @staticmethod
     def _formatear_excel(ruta_archivo):
-        '''Aplica formato de tabla al archivo Excel generado, incluyendo estilos y autoajuste de columnas.'''
         from openpyxl import load_workbook
         from openpyxl.worksheet.table import Table, TableStyleInfo
         from openpyxl.utils import get_column_letter
@@ -252,7 +256,7 @@ class ApiFilter:
         columnas = ws.max_column
 
         if filas < 2 or columnas < 1:
-            return  # Evita crear tabla si no hay datos
+            return
 
         ultima_columna = get_column_letter(columnas)
         rango = f"A1:{ultima_columna}{filas}"
@@ -271,7 +275,6 @@ class ApiFilter:
         tabla.tableStyleInfo = estilo
         ws.add_table(tabla)
 
-        # Autoajustar columnas
         for col in ws.columns:
             max_length = 0
             col_letter = col[0].column_letter

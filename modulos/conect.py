@@ -25,9 +25,9 @@ CONFIG_PATH = BASE_DIR / "config.json"
 
 # VERIFICAR EXISTENCIA DE ARCHVIO DE CONFIGURACIÓN ================================================
 def j_config():
-    '''Este metodo verifica si existe el archivo json que tendra la configuracion 
+    """Este metodo verifica si existe el archivo json que tendra la configuracion 
     y los endpoint desde la cual se estrae la informacion del api, 
-    en caso no existir este los crea con las configuraciones en blanco'''
+    en caso no existir este los crea con las configuraciones en blanco"""
 
     if not CONFIG_PATH.exists():
         config_default = {
@@ -72,8 +72,8 @@ def password():
 # CLIENTE NAVIXY
 # =========================================================================================================
 class ConectNvx:
-    '''Esta clase se encarga de manejar la conexión al API de NAVIXY, incluyendo autenticación,
-    obtención de datos de usuarios y trackers, y control de tasa para evitar exceder los límites del API.'''
+    """Esta clase se encarga de manejar la conexión al API de NAVIXY, incluyendo autenticación,
+    obtención de datos de usuarios y trackers, y control de tasa para evitar exceder los límites del API."""
     def __init__(self, usuario, clave):
         self.config = j_config()
         self.rate_limiter = RateLimiter()
@@ -92,8 +92,8 @@ class ConectNvx:
 
     # LOGIN ==============================================================================================
     def _login(self) -> str:
-        '''Se conecta al API de NAVIXY utilizando las credenciales proporcionadas
-        y obtiene un token de autenticación (hash) para futuras solicitudes.'''
+        """Se conecta al API de NAVIXY utilizando las credenciales proporcionadas
+        y obtiene un token de autenticación (hash) para futuras solicitudes."""
         payload = {
             "login": self.user,
             "password": self.password
@@ -119,7 +119,7 @@ class ConectNvx:
     
     # OBTENER USUARIOS ===================================================================================
     def get_users(self) -> pd.DataFrame:
-        '''Obtiene la lista de usuarios desde el API de NAVIXY y devuelve un DataFrame con la información relevante.'''
+        """Obtiene la lista de usuarios desde el API de NAVIXY y devuelve un DataFrame con la información relevante."""
         payload = {"hash": self.hash}
         response = self._post(self.url_user, payload)
 
@@ -150,7 +150,7 @@ class ConectNvx:
 
     # OBTENER TRACKERS ====================================================================================
     def get_trackers(self) -> pd.DataFrame:
-        '''Obtiene la lista de trackers desde el API de NAVIXY y devuelve un DataFrame con la información relevante.'''
+        """Obtiene la lista de trackers desde el API de NAVIXY y devuelve un DataFrame con la información relevante."""
         payload = {"hash": self.hash}
         response = self._post(self.url_tracker, payload)
 
@@ -224,7 +224,7 @@ class ConectNvx:
 
     # NETWORK NAME ====================================================================================
     def get_trackers_network_name(self, df_trackers: pd.DataFrame) -> dict:
-        '''Obtiene el nombre de la red GSM para cada tracker utilizando solicitudes concurrentes al API de NAVIXY.'''
+        """Obtiene el nombre de la red GSM para cada tracker utilizando solicitudes concurrentes al API de NAVIXY."""
 
         if df_trackers.empty:
             return {}
@@ -248,7 +248,10 @@ class ConectNvx:
             for user_id, group in df_trackers.groupby("user_id")
         }
 
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        # Ejecuta el multihilo para obtener el nombre de la data de cada tracker asociado a usuarios activos, 
+        # en este caso realiza 10 procesos a la vez, ajustable según necesidades y límites del API. 
+        # Para usuarios inactivos, asigna None directamente sin hacer solicitudes.
+        with ThreadPoolExecutor(max_workers=40) as executor:
 
             futures = []
 
@@ -283,8 +286,8 @@ class ConectNvx:
 
     # MULTIPROCESO PARA LOS REQUESTS DE PANEL =================================================================
     def _process_user_networks(self, user_id: int, tracker_ids: list) -> dict:
-        '''Realiza las solicitudes necesarias para obtener el nombre de la red GSM
-        para un grupo de trackers asociados a un usuario específico.'''
+        """Realiza las solicitudes necesarias para obtener el nombre de la red GSM
+        para un grupo de trackers asociados a un usuario específico."""
         
         result = {tid: None for tid in tracker_ids}
 
@@ -330,12 +333,12 @@ class ConectNvx:
 
     # REQUEST CENTRAL ===============================================================================
     def _post(self, url: str, payload: dict, retries = 4) -> dict | None:
-        '''Realiza una solicitud POST al API de NAVIXY con manejo de reintentos y control de rate limit.'''
+        """Realiza una solicitud POST al API de NAVIXY con manejo de reintentos y control de rate limit.""" 
 
         for attempt in range(retries):
             try:
                 self.rate_limiter.wait()
-                response = self.session.post( url, data = payload, timeout = 10)
+                response = self.session.post( url, data = payload, timeout = 15 )
                 return response.json()
 
             except Exception as e:
@@ -348,8 +351,8 @@ class ConectNvx:
 # CONTROLADOR DE RATE LIMITER
 # ==============================================================================================
 class RateLimiter:
-    '''Implementa un mecanismo de control de tasa para limitar,
-    la cantidad de solicitudes realizadas al API en un período de tiempo determinado.'''
+    """Implementa un mecanismo de control de tasa para limitar,
+    la cantidad de solicitudes realizadas al API en un período de tiempo determinado."""
     def __init__(self, rate=40, per=1):
         self.rate = rate
         self.per = per
@@ -358,7 +361,7 @@ class RateLimiter:
         self.lock = threading.Lock()
 
     def wait(self):
-        '''Espera el tiempo necesario para cumplir con el límite de tasa antes de permitir la siguiente solicitud.'''
+        """Espera el tiempo necesario para cumplir con el límite de tasa antes de permitir la siguiente solicitud."""
         with self.lock:
 
             current = time.time()
