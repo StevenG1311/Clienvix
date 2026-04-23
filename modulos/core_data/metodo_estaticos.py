@@ -15,7 +15,7 @@ def validar_smtp(correo, clave, server, puerto, security):
     print("Probando conexión...")
     return smtp_send(server, puerto, correo, clave, security, msg)
 
-def render_dataframe(df, titulo="Tabla"):
+def render_dataframe(df, titulo = "Tabla"):
     from rich.console import Console
     from rich.table import Table
 

@@ -27,10 +27,10 @@ class ApiFilter:
         render_dataframe(df, "Usuarios")
         export_prompt(df)
 
-    def status_panel(self):
+    def status_panel(self, titulo = "Listado de Trackers"):
         df = self.con.get_trackers()
         if is_empty(df): return
-        self.procesar_status(df)
+        self.procesar_status(df, titulo = titulo)
 
     def status_account(self):
         cuenta = input("Cuenta: ").lower()
@@ -41,16 +41,16 @@ class ApiFilter:
         df = df[df["owner_name"].str.lower().str.contains(cuenta, na=False)]
         if is_empty(df): return
 
-        self.procesar_status(df)
+        self.procesar_status(df, titulo = cuenta)
 
-    def procesar_status(self, df):
+    def procesar_status(self, df, titulo="Listado de Trackers"):
         if is_empty(df): return
 
         if input("Filtro offline (s/n): ").lower() == "s":
             df = filtrar_trackers_offline(df)
             if is_empty(df): return
 
-        render_dataframe(df)
+        render_dataframe(df, titulo)
         export_prompt(df)
 
     def cerrar(self):
