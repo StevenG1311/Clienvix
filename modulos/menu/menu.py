@@ -1,23 +1,25 @@
 import os
 import sys
 import time
-from .core_filter import ApiFilter
-from .s_mail import MailConfig
-from .conect import user, password
+
+from modulos.core_data.core_filter import ApiFilter
+from modulos.mail.config_mail import MailConfig
+from modulos.connection.conect import user, password
+from modulos.core_data.exportar_excel import new_ruta
 
 # =======================================================================================
 # MENÚ PRINCIPAL Y DE AJUSTES
 # =======================================================================================
 
 m = MailConfig()
-c = None  # Control de sesión
+c = None
 SESSION_LABEL = "No hay sesión activa"
 
 # LIMPIAR PANTALLA ============================================================
 def limpiar():
     """Limpia la pantalla de la consola."""
     os.system("cls") if os.name == "nt" else os.system("clear")
-
+    
 # MANEJO DE SESIÓN ================================================================
 def iniciar_sesion():
     """Solicita al usuario que ingrese sus credenciales, intenta iniciar sesión y establece la sesión activa."""
@@ -114,7 +116,7 @@ def menu_ajustes():
         "1": ("Ver Configuración", m.ver_configuracion),
         "2": ("Configurar Correo", m.configurar_mail),
         "3": ("Eliminar Configuración", m.del_config),
-        "4": ("Cambiar ruta de guardado local", c.new_ruta),
+        "4": ("Cambiar ruta de guardado local", new_ruta),
         "0": ("Regresar", None)
     }
 

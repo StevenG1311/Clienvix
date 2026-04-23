@@ -1,0 +1,19 @@
+{
+    "MAIL": {
+        "NOMBRE": "",
+        "CORREO": "",
+        "CLAVE": "",
+        "SERVER": "",
+        "PORT": null,
+        "SECURITY": ""
+    },
+    "URLS": {
+        "API": "https://api.navixy.com/v2",
+        "PANEL_AUTH": "https://api.navixy.com/v2/panel/account/auth",
+        "USER_LIST": "https://api.navixy.com/v2/panel/user/list",
+        "USER_HASH": "https://api.navixy.com/v2/panel/user/session/create",
+        "TRACKER_LIST": "https://panel.navixy.com/api-v2/panel/tracker/list",
+        "TRACKER_STATES": "https://api.navixy.com/v2/tracker/get_states"
+    },
+    "RUTA": ""
+}
